@@ -1,0 +1,93 @@
+version: '3'
+
+volumes: 
+  elasticsearch: {}
+  proget: {}
+  teamcity: {}
+  rabbitmq: {}  
+
+services: 
+
+  elasticsearch:
+     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.0.0
+     container_name: elasticsearch
+     restart: unless-stopped
+     ports: 
+        - "9200:9200"
+        - "9300:9300"
+     volumes:
+        -  elasticsearch:/usr/share/elasticsearch/data
+     networks:
+        - infra
+  kibana: 
+    image: docker.elastic.co/kibana/kibana-oss:6.0.0
+    container_name : kibana
+    restart: unless-stopped
+    ports:
+       - "5601:5601"
+    networks: 
+       - infra
+
+  proget-postgres: 
+    image: postgres:9.5
+    container_name: proget-postgres
+    restart: unless-stopped
+    volumes:
+        - proget:/var/lib/postgresql/data
+    networks:
+        - infra
+
+  proget:
+    image: inedo/proget
+    container_name: proget
+    restart: unless-stopped
+    volumes: 
+        - proget:/var/proget/packages
+        - proget:/var/proget/extensions
+    ports: 
+        - 80:80
+    depends_on: 
+        - proget-postgres
+    networks:
+        - infra
+
+  teamcity-server:
+    image:  jetbrains/teamcity-server
+    container_name: teamcity-server
+    volumes:
+        - teamcity:/data/teamcity_server/datadir
+        - teamcity:/data/teamcity_server/logs
+    restart: unless-stopped
+    ports:
+        - 81:8111
+    networks: 
+        - infra
+
+  teamcity-agent:
+    image: gjaminon/teamcity-agent-aspnetcore
+    container_name: teamcity-agent-01
+    restart: unless-stopped
+    environment: 
+        - SERVER_URL=teamcity-server:8111
+    volumes:
+        - teamcity:/data/teamcity_agent/conf
+    networks: 
+        - infra
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbirmq
+    restart: unless-stopped
+    ports: 
+        - 15672:15672
+        - 5672:5672
+    volumes:
+        - rabbitmq:/var/lib/rabbitmq/mnesia
+    networks:
+        - infra
+        
+        
+   
+   
+networks:
+     infra:
