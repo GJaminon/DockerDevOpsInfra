@@ -3,7 +3,7 @@
 - ElasticSearch : 9200
 
 - Elasticsearch-Exporter : 9108
-    Expose ElasticSearch metrics in Prometheus format
+   - Expose ElasticSearch metrics in Prometheus format
 
 - Kibana : 5601
 
