@@ -4,7 +4,8 @@ volumes:
   elasticsearch: {}
   proget: {}
   teamcity: {}
-  rabbitmq: {}  
+  rabbitmq: {}
+  
 
 services: 
 
@@ -51,6 +52,18 @@ services:
     networks:
         - infra
 
+  postgres:
+    image: postgres:9.5
+    container_name: postgres
+    restart: unless-stopped
+    volumes: 
+        - teamcity:/var/lib/postgressql/data
+    environment: 
+        POSTGRES_PASSWORD: PostgresPassword123
+        POSTGRES_USER: DevOpsManager    
+    networks:
+        - infra 
+
   teamcity-server:
     image:  jetbrains/teamcity-server
     container_name: teamcity-server
@@ -85,7 +98,8 @@ services:
         - rabbitmq:/var/lib/rabbitmq/mnesia
     networks:
         - infra
-        
+  
+    
         
    
    

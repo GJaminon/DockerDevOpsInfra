@@ -1,0 +1,43 @@
+metricbeat.config.modules:
+   # Glob pattern for configuration loading
+      path: ${path.config}/modules.d/*.yml
+   # Set to true to enable config reloading
+      reload.enabled: true
+   # Period on which files under path should be checked for changes   
+      reload.period: 10s
+
+setup.template.settings:
+   index.number_of_shards: 1
+   index.codec: best_compression
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "kibana:5601"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+metricbeat.modules: 
+  - module: docker
+    metricsets: 
+      - container
+      - cpu
+      - diskio
+      - healthcheck
+      - info
+      - memory
+      - network
+    hosts: ["unix:///var/run/docker.sock"]
+  - module: system
+    metricsets: 
+      - cpu
+      - load
+      - memory
+      - network
+      - diskio
+      - filesystem
+      - fsstat
+      - process
+    processes: ['.*']
+    cgroups: true
