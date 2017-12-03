@@ -1,0 +1,160 @@
+version: '3'
+volumes:
+    elasticsearch: {}
+    proget: {}
+    teamcity: {}
+    rabbitmq: {}
+    prometheus: {}
+    mssqlserver: {}
+services:
+    elasticsearch:
+        image: 'docker.elastic.co/elasticsearch/elasticsearch-oss:6.0.0'
+        container_name: elasticsearch
+        restart: unless-stopped
+        ports:
+            - '9200:9200'
+            - '9300:9300'
+        volumes:
+            - 'elasticsearch:/usr/share/elasticsearch/data'
+        networks:
+            - infra
+    elasticsearch-exporter:
+        image: gjaminon/elasticsearch_exporter
+        container_name: elasticsearch-exporter
+        command: 
+           - '-es.uri=http://elasticsearch:9200'
+        restart: unless-stopped
+        ports: 
+           - 9108:9108
+        networks:
+           - infra
+    kibana:
+        image: 'docker.elastic.co/kibana/kibana-oss:6.0.0'
+        container_name: kibana
+        restart: unless-stopped
+        ports:
+            - '5601:5601'
+        networks:
+            - infra
+    proget-postgres:
+        image: 'postgres:9.5'
+        container_name: proget-postgres
+        restart: unless-stopped
+        volumes:
+            - 'proget:/var/lib/postgresql/data'
+        networks:
+            - infra
+    proget:
+        image: inedo/proget
+        container_name: proget
+        restart: unless-stopped
+        volumes:
+            - 'proget:/var/proget/packages'
+            - 'proget:/var/proget/extensions'
+        ports:
+            - '80:80'
+        depends_on:
+            - proget-postgres
+        networks:
+            - infra
+    teamcity-server:
+        image: jetbrains/teamcity-server
+        container_name: teamcity-server
+        volumes:
+            - 'teamcity:/data/teamcity_server/datadir'
+            - 'teamcity:/data/teamcity_server/logs'
+        restart: unless-stopped
+        ports:
+            - '81:8111'
+        networks:
+            - infra
+    teamcity-agent-01:
+        image: gjaminon/teamcity-agent-aspnetcore
+        container_name: teamcity-agent-01
+        restart: unless-stopped
+        environment:
+            - 'SERVER_URL=teamcity-server:8111'
+        volumes:
+            - 'teamcity:/data/teamcity_agent/conf'
+        networks:
+            - infra
+    rabbitmq:
+        build: ./Containers/RabbitMQ/
+        container_name: rabbitmq
+        image: gjaminon/rabbitmq
+        ports:
+            - '15672:15672'
+            - '5672:5672'
+        volumes:
+            - 'rabbitmq:/var/lib/rabbitmq/mnesia'
+        networks:
+            - infra
+    prometheus:
+        image: 'prom/prometheus:latest'
+        container_name: prometheus
+        restart: unless-stopped
+        volumes:
+            - './Config/prometheus:/etc/prometheus'
+            - 'prometheus:/prometheus'
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+        ports:
+            - '9090:9090'
+        networks:
+            - infra
+    node_exporter:
+        image: prom/node-exporter
+        container_name: node_exporter
+        restart: unless-stopped
+        ports:
+            - '9100:9100'
+        networks:
+            - infra
+    cadvisor:
+        image: google/cadvisor
+        container_name: caAdvisor
+        restart: unless-stopped
+        volumes:
+            - '/:/rootfs:ro'
+            - '/var/run:/var/run:rw'
+            - '/sys:/sys:ro'
+            - '/var/lib/docker/:/var/lib/docker:ro'
+        ports:
+            - '8080:8080'
+        networks:
+            - infra
+    grafana:
+        build: ./Containers/Grafana/
+        container_name: grafana
+        image: gjaminon/grafana
+        ports:
+            - '3000:3000'
+        networks:
+            - infra
+    grafana-config:
+        build: ./Containers/Grafana-Config/
+        container_name: grafana-config
+        image: gjaminon/grafanaconfig
+        entrypoint: bash -c ./config.sh
+        networks:
+            - infra
+        depends_on:
+            - grafana
+    mssqlserver:
+        image: 'microsoft/mssql-server-linux:2017-latest'
+        container_name: mssqlserver
+        restart: unless-stopped
+        environment:
+            ACCEPT_EULA: Y
+            SA_PASSWORD: DevOpsSql123
+        ports:
+            - '1433:1433'
+        volumes:
+            - 'mssqlserver:/var/opt/mssql'
+        networks:
+            - infra
+networks:
+    - infra
