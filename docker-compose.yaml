@@ -157,4 +157,4 @@ services:
         networks:
             - infra
 networks:
-    - infra
+    infra:
