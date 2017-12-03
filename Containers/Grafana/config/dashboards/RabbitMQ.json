@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "hideControls": false,
-  "id": null,
+  "id": 1,
   "links": [],
   "refresh": "5s",
   "rows": [
@@ -143,7 +143,6 @@
             {
               "expr": "sum by (job)  (irate(rabbitmq_queue_messages_published_total[5m]))",
               "format": "time_series",
-              "hide": false,
               "intervalFactor": 2,
               "legendFormat": "Messages Published",
               "metric": "",
@@ -918,7 +917,7 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -949,5 +948,5 @@
   },
   "timezone": "browser",
   "title": "RabbitMQ",
-  "version": 0
+  "version": 13
 }
