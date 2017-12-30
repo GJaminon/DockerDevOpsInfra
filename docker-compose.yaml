@@ -6,6 +6,7 @@ volumes:
     rabbitmq: {}
     prometheus: {}
     mssqlserver: {}
+    nexus: {}
 services:
     elasticsearch:
         image: 'docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.0'
@@ -157,5 +158,16 @@ services:
             - 'mssqlserver:/var/opt/mssql'
         networks:
             - infra
+    nexus:
+        image: "sonatype/nexus3:3.7.0"
+        container_name: nexus
+        restart: unless-stopped
+        ports:
+            - '8081:8081'
+        volumes: 
+            - '/nexus:/nexus-data'
+        networks: 
+            - infra 
+        
 networks:
     infra:
