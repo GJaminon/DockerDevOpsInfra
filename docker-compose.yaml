@@ -165,7 +165,7 @@ services:
         ports:
             - '8081:8081'
         volumes: 
-            - '/nexus:/nexus-data'
+            - 'nexus:/nexus-data'
         networks: 
             - infra 
         
