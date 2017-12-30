@@ -34,3 +34,6 @@
     - Used to configure Prometheus as datasource in Grafana
 
 - MSSQLServer : 1433
+
+- Nexus
+     - Package manager (Chocolatey = Nuget)
